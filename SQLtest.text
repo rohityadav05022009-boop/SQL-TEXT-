@@ -85,4 +85,122 @@ SELECT DISTINCT city
 FROM employees
 ORDER BY city ASC;
 
+-- 11. Display total employee count, average salary, maximum salary and minimum salary.
 
+SELECT
+    COUNT(*) AS total_employee_count,
+    ROUND(AVG(salary), 2) AS average_salary,
+    MAX(salary) AS maximum_salary,
+    MIN(salary) AS minimum_salary
+FROM employees;
+
+
+
+-- 12. For each department ID, show employee count and average salary; include only groups with at least two employees.
+
+SELECT
+    department_id,
+    COUNT(*) AS employee_count,
+    ROUND(AVG(salary), 2) AS average_salary
+FROM employees
+GROUP BY department_id
+HAVING COUNT(*) >= 2;
+
+
+-- 13. Show total salary by city, only for cities where total salary exceeds 100,000.
+
+SELECT
+    city,
+    SUM(salary) AS total_salary
+FROM employees
+GROUP BY city
+HAVING SUM(salary) > 100000;
+
+
+-- 14. Find the department ID with the highest average employee salary.
+
+SELECT
+    department_id,
+    ROUND(AVG(salary), 2) AS average_salary
+FROM employees
+WHERE department_id IS NOT NULL
+GROUP BY department_id
+ORDER BY AVG(salary) DESC
+LIMIT 1;
+
+
+-- 15. Count employees by joining year and sort by year.
+
+SELECT
+    EXTRACT(YEAR FROM joining_date) AS joining_year,
+    COUNT(*) AS employee_count
+FROM employees
+GROUP BY EXTRACT(YEAR FROM joining_date)
+ORDER BY joining_year;
+
+
+-- 16. Display employee name, department name and department location for employees with a matching department.
+
+SELECT
+    e.employee_name,
+    d.department_name,
+    d.location AS department_location
+FROM employees e
+INNER JOIN departments d
+    ON e.department_id = d.department_id;
+
+
+-- 17. Display every department and its employee count, including departments with no employees.
+
+SELECT
+    d.department_id,
+    d.department_name,
+    COUNT(e.employee_id) AS employee_count
+FROM departments d
+LEFT JOIN employees e
+    ON d.department_id = e.department_id
+GROUP BY d.department_id, d.department_name
+ORDER BY d.department_id;
+
+-- 18. Find employees whose salary is above the overall average salary.
+
+SELECT
+    employee_id,
+    employee_name,
+    salary
+FROM employees
+WHERE salary > (
+    SELECT AVG(salary)
+    FROM employees
+)
+ORDER BY salary DESC;
+
+
+-- 19. Find employees earning more than their department average. Show name, department ID, salary and department average.
+
+SELECT
+    employee_name,
+    department_id,
+    salary,
+    department_average
+FROM (
+    SELECT
+        employee_name,
+        department_id,
+        salary,
+        AVG(salary) OVER (PARTITION BY department_id) AS department_average
+    FROM employees
+) AS emp
+WHERE salary > department_average
+  AND department_id IS NOT NULL
+ORDER BY department_id, salary DESC;
+
+-- 20. Display each employee's name and manager's name, including employees without a manager.
+
+SELECT
+    e.employee_name AS employee_name,
+    m.employee_name AS manager_name
+FROM employees e
+LEFT JOIN employees m
+    ON e.manager_id = m.employee_id
+ORDER BY e.employee_id;
